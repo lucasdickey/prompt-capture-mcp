@@ -1,0 +1,14 @@
+{
+  "tools": {
+    "prompt-capture": {
+      "type": "local",
+      "path": "/Users/YOUR_USERNAME/Tools/prompt-capture-mcp/manifest.json"
+    }
+  },
+  "onLaunch": [
+    {
+      "command": "./start.sh",
+      "cwd": "/Users/YOUR_USERNAME/Tools/prompt-capture-mcp"
+    }
+  ]
+}

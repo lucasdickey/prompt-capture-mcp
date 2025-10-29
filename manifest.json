@@ -1,0 +1,19 @@
+{
+  "name": "prompt-capture-mcp",
+  "description": "Captures all Claude Code prompts into a markdown log file.",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "capture_prompt",
+      "description": "Capture a prompt and append to the log file.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "prompt": { "type": "string" },
+          "context": { "type": "object" }
+        },
+        "required": ["prompt"]
+      }
+    }
+  ]
+}
