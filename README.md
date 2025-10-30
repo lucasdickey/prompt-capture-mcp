@@ -1,14 +1,15 @@
 # Prompt Capture MCP
 
-A lightweight Model Context Protocol (MCP) server that automatically captures and logs all prompts you send from Claude Code to a local markdown file. Perfect for tracking your interactions, building a prompt library, or analyzing your workflow.
+A lightweight system that automatically captures and logs all prompts you send from Claude Code to a local markdown file. Uses Claude Code's UserPromptSubmit hook for seamless, automatic capture. Perfect for tracking your interactions, building a prompt library, or analyzing your workflow.
 
 ## Features
 
-- **Automatic Prompt Logging**: Captures every prompt sent through Claude Code
-- **Context Tracking**: Records project, workspace, file, and model information
+- **Automatic Prompt Logging**: Captures every prompt using Claude Code hooks
+- **Non-Intrusive**: Runs in background without affecting your workflow
+- **Context Tracking**: Records project, workspace, session ID, and model information
 - **Timestamped Entries**: Each prompt is logged with an ISO 8601 timestamp
 - **Markdown Format**: Easy-to-read log file that's perfect for documentation
-- **Auto-start Integration**: Launches automatically when Claude Code starts
+- **Auto-start Integration**: Server launches automatically when Claude Code starts
 - **Minimal Overhead**: Lightweight FastAPI server with low resource usage
 
 ## Quick Start
@@ -156,8 +157,9 @@ launchctl unload ~/Library/LaunchAgents/com.promptcapture.mcp.plist
 
 ```
 prompt-capture-mcp/
-├── main.py                          # FastAPI MCP server
-├── manifest.json                    # MCP tool manifest
+├── main.py                          # FastAPI server with capture endpoint
+├── capture_hook.py                  # UserPromptSubmit hook script
+├── manifest.json                    # MCP tool manifest (optional)
 ├── requirements.txt                 # Python dependencies
 ├── install.sh                       # Automated installation script
 ├── config/
@@ -165,15 +167,21 @@ prompt-capture-mcp/
 │   ├── mcp.json.example             # Claude Code config example
 │   └── com.promptcapture.mcp.plist  # macOS LaunchAgent template
 └── README.md                        # This file
+
+After installation:
+~/.anthropic/config/
+├── mcp.json                         # MCP server auto-start config
+└── settings.json                    # Hook configuration
 ```
 
 ## How It Works
 
-1. **MCP Server**: A FastAPI server runs locally on `http://127.0.0.1:8000`
-2. **Claude Code Integration**: The `mcp.json` config registers the tool with Claude Code
-3. **Auto-start**: The `onLaunch` hook in `mcp.json` starts the server when Claude Code launches
-4. **Prompt Capture**: The server exposes a `/capture_prompt` endpoint
-5. **Logging**: Each captured prompt is appended to `PROMPTS_INPUT_LOG.md`
+1. **FastAPI Server**: A FastAPI server runs locally on `http://127.0.0.1:8000`
+2. **Auto-start**: The `onLaunch` hook in `mcp.json` starts the server when Claude Code launches
+3. **UserPromptSubmit Hook**: Claude Code hook fires every time you submit a prompt
+4. **Hook Script**: The `capture_hook.py` script receives prompt data and sends it to the server
+5. **API Endpoint**: The server's `/capture_prompt` endpoint receives and logs the prompt
+6. **Logging**: Each captured prompt is appended to `PROMPTS_INPUT_LOG.md` with metadata
 
 ## API Endpoints
 
@@ -225,8 +233,17 @@ Health check endpoint.
 
 1. Verify server is running: `curl http://127.0.0.1:8000/health`
 2. Check `~/.anthropic/config/mcp.json` for correct paths
-3. Ensure `start.sh` is executable: `ls -l ~/Tools/prompt-capture-mcp/start.sh`
-4. Restart Claude Code
+3. Check `~/.anthropic/config/settings.json` has the UserPromptSubmit hook configured
+4. Ensure scripts are executable:
+   ```bash
+   chmod +x ~/Tools/prompt-capture-mcp/start.sh
+   chmod +x ~/Tools/prompt-capture-mcp/capture_hook.py
+   ```
+5. Test the hook manually:
+   ```bash
+   echo '{"prompt":"test","session_id":"test"}' | ~/Tools/prompt-capture-mcp/capture_hook.py
+   ```
+6. Restart Claude Code
 
 ### Permission errors
 
@@ -240,7 +257,8 @@ chmod +x ~/Tools/prompt-capture-mcp/start.sh
 - FastAPI 0.110.0+
 - Uvicorn 0.29.0+
 - Pydantic 2.0.0+
-- Claude Code
+- Requests 2.31.0+
+- Claude Code with hooks support
 
 ## Security & Privacy
 

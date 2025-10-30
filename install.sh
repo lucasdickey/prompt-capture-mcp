@@ -36,11 +36,13 @@ mkdir -p "$INSTALL_DIR"
 # Copy files
 echo "Copying server files..."
 cp "$SCRIPT_DIR/main.py" "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/capture_hook.py" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/manifest.json" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/config/start.sh" "$INSTALL_DIR/"
 
-# Make start.sh executable
+# Make scripts executable
 chmod +x "$INSTALL_DIR/start.sh"
+chmod +x "$INSTALL_DIR/capture_hook.py"
 
 # Install Python dependencies
 echo ""
@@ -102,6 +104,54 @@ else
 }
 EOF
     echo "Created $CLAUDE_MCP_CONFIG"
+fi
+
+# Configure Claude Code hooks
+echo ""
+echo "Configuring UserPromptSubmit hook..."
+CLAUDE_SETTINGS="$CLAUDE_CONFIG_DIR/settings.json"
+
+if [ -f "$CLAUDE_SETTINGS" ]; then
+    echo "Warning: $CLAUDE_SETTINGS already exists."
+    echo "Please manually add the following to your hooks configuration:"
+    echo ""
+    cat <<EOF
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$INSTALL_DIR/capture_hook.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+EOF
+else
+    # Create new settings.json
+    cat > "$CLAUDE_SETTINGS" <<EOF
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$INSTALL_DIR/capture_hook.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+EOF
+    echo "Created $CLAUDE_SETTINGS"
 fi
 
 # Optional: macOS LaunchAgent setup
