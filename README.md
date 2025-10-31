@@ -78,11 +78,25 @@ Then restart Claude Code and you're ready to go!
 
 ## Usage
 
-Once installed, the MCP server runs automatically in the background. Every prompt you send through Claude Code will be logged to:
+Once installed, the MCP server runs automatically in the background. Every prompt you send through Claude Code will be logged to a repository-specific file:
 
 ```
-~/Tools/prompt-capture-mcp/PROMPTS_INPUT_LOG.md
+<your-repository>/PROMPTS_INPUT_LOG.md
 ```
+
+Each repository gets its own prompt log file, keeping your prompts organized by project. This avoids conflating prompts from different repositories.
+
+**Important:** Add `PROMPTS_INPUT_LOG.md` to your `.gitignore` file to prevent committing prompt history to version control.
+
+### Quick View with Slash Command
+
+Use the `/prompt-history` command in Claude Code to quickly view your captured prompts for the current repository:
+
+```
+/prompt-history
+```
+
+This command will automatically find and display the prompt log file for your current repository.
 
 ### Log Format
 
@@ -97,6 +111,19 @@ model: claude-sonnet-4-5
 ---
 **Prompt:**
 Your prompt text here
+```
+
+### Adding to .gitignore
+
+To prevent committing your prompt history, add this line to your repository's `.gitignore`:
+
+```
+PROMPTS_INPUT_LOG.md
+```
+
+Or use this command:
+```bash
+echo "PROMPTS_INPUT_LOG.md" >> .gitignore
 ```
 
 ### Manual Server Control
@@ -162,6 +189,9 @@ prompt-capture-mcp/
 ├── manifest.json                    # MCP tool manifest (optional)
 ├── requirements.txt                 # Python dependencies
 ├── install.sh                       # Automated installation script
+├── .claude/
+│   └── commands/
+│       └── prompt-history.md        # Slash command to view prompt log
 ├── config/
 │   ├── start.sh                     # Server startup script
 │   ├── mcp.json.example             # Claude Code config example
@@ -179,9 +209,9 @@ After installation:
 1. **FastAPI Server**: A FastAPI server runs locally on `http://127.0.0.1:8000`
 2. **Auto-start**: The `onLaunch` hook in `mcp.json` starts the server when Claude Code launches
 3. **UserPromptSubmit Hook**: Claude Code hook fires every time you submit a prompt
-4. **Hook Script**: The `capture_hook.py` script receives prompt data and sends it to the server
+4. **Hook Script**: The `capture_hook.py` script receives prompt data (including workspace directory) and sends it to the server
 5. **API Endpoint**: The server's `/capture_prompt` endpoint receives and logs the prompt
-6. **Logging**: Each captured prompt is appended to `PROMPTS_INPUT_LOG.md` with metadata
+6. **Logging**: Each captured prompt is appended to `PROMPTS_INPUT_LOG.md` in the current repository's directory with metadata
 
 ## API Endpoints
 

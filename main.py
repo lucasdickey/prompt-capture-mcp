@@ -5,7 +5,7 @@ import os
 
 app = FastAPI(title="Prompt Capture MCP")
 
-LOG_FILE = "PROMPTS_INPUT_LOG.md"
+LOG_FILENAME = "PROMPTS_INPUT_LOG.md"
 
 
 class Context(BaseModel):
@@ -22,18 +22,28 @@ class PromptData(BaseModel):
 
 @app.post("/capture_prompt")
 async def capture_prompt(data: PromptData):
-    os.makedirs(os.path.dirname(LOG_FILE) or ".", exist_ok=True)
+    # Determine log file location based on workspace
+    workspace = getattr(data.context, 'workspace', None) if data.context else None
+
+    if workspace and os.path.isdir(workspace):
+        # Write to the workspace directory (project-specific)
+        log_file = os.path.join(workspace, LOG_FILENAME)
+    else:
+        # Fallback to current directory if no workspace provided
+        log_file = LOG_FILENAME
+
     entry = (
         f"---\n"
         f"timestamp: {datetime.utcnow().isoformat()}Z\n"
         f"project: {getattr(data.context, 'project', '')}\n"
-        f"workspace: {getattr(data.context, 'workspace', '')}\n"
+        f"workspace: {workspace or ''}\n"
         f"file: {getattr(data.context, 'file', '')}\n"
         f"model: {getattr(data.context, 'model', '')}\n"
         f"---\n"
         f"**Prompt:**\n{data.prompt}\n\n"
     )
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
+
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(entry)
     return {"status": "ok"}
 

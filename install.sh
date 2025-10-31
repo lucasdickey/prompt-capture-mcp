@@ -40,6 +40,12 @@ cp "$SCRIPT_DIR/capture_hook.py" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/manifest.json" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/config/start.sh" "$INSTALL_DIR/"
 
+# Copy .claude directory with slash commands
+if [ -d "$SCRIPT_DIR/.claude" ]; then
+    echo "Installing slash commands..."
+    cp -r "$SCRIPT_DIR/.claude" "$INSTALL_DIR/"
+fi
+
 # Make scripts executable
 chmod +x "$INSTALL_DIR/start.sh"
 chmod +x "$INSTALL_DIR/capture_hook.py"
@@ -191,12 +197,13 @@ echo "Installation Complete!"
 echo "==================================="
 echo ""
 echo "Installation directory: $INSTALL_DIR"
-echo "Logs will be saved to: $INSTALL_DIR/PROMPTS_INPUT_LOG.md"
 echo ""
 echo "Next steps:"
 echo "1. Restart Claude Code"
 echo "2. The MCP server will start automatically"
-echo "3. Your prompts will be logged to PROMPTS_INPUT_LOG.md"
+echo "3. Your prompts will be logged to PROMPTS_INPUT_LOG.md in each repository"
+echo "4. Use '/prompt-history' in Claude Code to view your captured prompts"
+echo "5. Add 'PROMPTS_INPUT_LOG.md' to your .gitignore files"
 echo ""
 echo "To manually start the server:"
 echo "  cd $INSTALL_DIR && ./start.sh"
